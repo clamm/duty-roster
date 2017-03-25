@@ -1,10 +1,10 @@
 // This is a Javascript test harness that simulates the execution of Lambda
 // function code From the command prompt, type 'node test.js'
 var assert = require('assert');
-var DynamoDB = require('../dynamodb.js');
+var DynamoDB = require('../src/dynamodb.js');
 
 // assumes single Lambda function with exports.handler
-var MyLambdaFunction = require('../index.js');
+var MyLambdaFunction = require('../src/index.js');
 
 
 function getSpeech(response) {
@@ -81,7 +81,7 @@ var deleteParams = function(id) {
 };
 
 // actual test scenarios
-describe('DutyRoaster Integration', function() {
+describe('DutyRoster Integration', function() {
 
   describe('LaunchRequest', function() {
     it('should return a welcome text', function(done) {
@@ -143,7 +143,7 @@ describe('DutyRoaster Integration', function() {
     describe('AvailablePeopleIntent', function() {
       it('should return list of available people', function(done) {
         var event = getEvent(userId, 'IntentRequest', 'AvailablePeopleIntent');
-        var expected = '<speak> Available team members for Duty Roaster are Raid and Dmytry </speak>';
+        var expected = '<speak> Available team members for Duty Roster are Raid and Dmytry </speak>';
         MyLambdaFunction['handler'](event, context(expected, done), done);
       });
     });

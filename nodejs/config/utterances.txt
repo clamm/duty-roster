@@ -1,0 +1,11 @@
+AddPersonIntent add {firstName}
+AddPersonIntent please add {firstName}
+AnswerIntent who is the duty roster
+AnswerIntent who is the duty roster this week
+AnswerIntent who is the duty roster today
+AnswerIntent who is on operations duty
+AnswerIntent who is on operations duty this week
+AnswerIntent who is on operations duty today
+AvailablePeopleIntent who is available
+AvailablePeopleIntent who can be duty roster
+AvailablePeopleIntent who is there

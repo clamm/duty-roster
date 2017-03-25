@@ -3,7 +3,7 @@ var moment = require('moment');
 var AWS = require('aws-sdk');
 var AWSregion = 'eu-west-1';
 
-exports.tableName = 'DutyRoasterSessions';
+exports.tableName = 'DutyRosterSessions';
 
 
 AWS.config.update({
@@ -64,14 +64,14 @@ var handlers = {
     if (people === undefined || people.length === 0) {
       msg = msgNoPeople;
     } else {
-      msg = 'Available team members for Duty Roaster are ' + sayArray(people, 'and');
+      msg = 'Available team members for Duty Roster are ' + sayArray(people, 'and');
     }
 
     this.emit(':tell', msg);
   },
 
   'AMAZON.HelpIntent': function() {
-    this.emit(':ask', 'With Duty Roaster you can find out who is the Duty Roaster this week. Just say "Who is the duty roaster this week?"');
+    this.emit(':ask', 'With Duty Roster you can find out who is the Duty Roster this week. Just say "Who is the duty roster this week?"');
   },
 
   'AMAZON.StopIntent': function() {
@@ -98,14 +98,14 @@ exports.whoIsOnDuty = function(attributes) {
 
   if (week !== getCurrentWeek()) {
     this.attributes['week'] = getCurrentWeek();
-    name = getDutyRoaster(people);
+    name = getDutyRoster(people);
   }
 
   console.log('name: ' + name);
   var msg;
   if (name !== undefined) {
     this.attributes['name'] = name;
-    msg = name + ' is the Duty Roaster for this week.';
+    msg = name + ' is the Duty Roster for this week.';
     return msg;
   } else {
     // TODO enchain a dialogue here
@@ -118,7 +118,7 @@ var getCurrentWeek = function() {
   return moment().format('Y-ww');
 };
 
-function getDutyRoaster(people) {
+function getDutyRoster(people) {
   var i = 0;
   if (people === undefined) {
     return;

@@ -1,7 +1,7 @@
 var assert = require('assert');
-var index = require('../index.js');
+var index = require('../src/index.js');
 
-describe('DutyRoaster Unit', function() {
+describe('DutyRoster Unit', function() {
   describe('welcome()', function() {
     it('should return a welcome text', function() {
       assert.equal(index.welcome(), 'Welcome!');
