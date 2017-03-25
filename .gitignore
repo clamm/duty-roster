@@ -1,8 +1,13 @@
 # Mac
 .DS_Store
 
+# IntelliJ
+.idea/
+
+# reproducible artifacts
 *.zip
 node_modules/
 
+# stuff that's not (yet) useful to anyone
 nodejs_de/
 python/

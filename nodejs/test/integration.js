@@ -158,7 +158,7 @@ describe('DutyRoster Integration', function() {
     });
 
     describe('AvailablePeopleIntent', function() {
-      it('AvailablePeopleIntent should return list of available people', function(done) {
+      it('should return list of available people', function(done) {
         var event = getEvent(userId, 'IntentRequest', 'AvailablePeopleIntent');
         var expected = 'Available team members for Duty Roster are Raid and Dmytry';
         MyLambdaFunction['handler'](event, context(expected, done), done);
@@ -166,7 +166,7 @@ describe('DutyRoster Integration', function() {
     });
 
     describe('AnswerIntent', function() {
-      it('AnswerIntent should choose a person', function(done) {
+      it('should choose a person', function(done) {
         var event = getEvent(userId, 'IntentRequest', 'AnswerIntent');
         var expected = 'I chose';
         MyLambdaFunction['handler'](event, context(expected, done), done);
@@ -178,7 +178,7 @@ describe('DutyRoster Integration', function() {
       beforeEach(function(done) {
         DynamoDB.createItem(itemParams(userId, 'Raid'), done);
       });
-      it('AnswerIntent should stick to the choosen person', function(done) {
+      it('should stick to the choosen person', function(done) {
         var event = getEvent(userId, 'IntentRequest', 'AnswerIntent');
         var expected = 'Raid is the Duty Roster';
         MyLambdaFunction['handler'](event, context(expected, done), done);
@@ -186,7 +186,7 @@ describe('DutyRoster Integration', function() {
     });
 
     describe('AddPersonIntent', function() {
-      it('AddPersonIntent should say the person is already in the list', function(done) {
+      it('should say the person is already in the list', function(done) {
         var slots = {
           'firstName': {
             'name': 'firstName',

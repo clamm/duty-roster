@@ -1,0 +1,7 @@
+AddPersonIntent füge {firstName} hinzu
+AnswerIntent wer hat dienst
+AnswerIntent wer hat diesnt diese woche
+AnswerIntent wer ist dran diese woche
+AnswerIntent wer ist diese woche dran
+AvailablePeopleIntent wen gibt es
+AvailablePeopleIntent wer kann dienst haben
