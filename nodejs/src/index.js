@@ -33,7 +33,15 @@ var handlers = {
   'AnswerIntent': function() {
     var attributes = this.attributes;
 
-    var msg = exports.whoIsOnDuty(attributes);
+    var results = exports.whoIsOnDuty(attributes);
+    var msg = results[0];
+
+    // save the chosen person
+    var name = results[1];
+    if (name !== undefined) {
+      this.attributes['name'] = name;
+    }
+
     this.emit(':tell', msg);
   },
 
@@ -82,30 +90,20 @@ exports.welcome = function() {
 };
 
 exports.whoIsOnDuty = function(attributes) {
-  var week = attributes['week'];
   var name = attributes['name'];
   var people = attributes['people'];
 
-  // console.log('week: ' + week);
-  // console.log('people:');
-  // console.log(people);
-
-  if (week !== getCurrentWeek()) {
-    this.attributes['week'] = getCurrentWeek();
-    name = getDutyRoster(people);
-  }
-
-  console.log('name: ' + name);
   var msg;
   if (name !== undefined) {
-    this.attributes['name'] = name;
     msg = name + ' is the Duty Roster for this week.';
-    return msg;
-  } else {
-    // TODO enchain a dialogue here
+  } else if (name === undefined & noPeople(people)) {
+    // TODO enchain a dialogue here to setup people
     msg = msgNoPeople;
-    return msg;
+  } else if (name === undefined & !noPeople(people)) {
+    name = choosePerson(people);
+    msg = 'I chose ' + name + ' as Duty Roster for this week.';
   }
+  return [msg, name];
 };
 
 exports.availablePeople = function(people) {
@@ -126,7 +124,7 @@ var getCurrentWeek = function() {
   return moment().format('Y-ww');
 };
 
-function getDutyRoster(people) {
+function choosePerson(people) {
   var i = 0;
   if (people === undefined) {
     return;
