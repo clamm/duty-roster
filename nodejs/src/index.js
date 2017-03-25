@@ -60,13 +60,7 @@ var handlers = {
 
   'AvailablePeopleIntent': function() {
     var people = this.attributes['people'];
-    var msg;
-    if (people === undefined || people.length === 0) {
-      msg = msgNoPeople;
-    } else {
-      msg = 'Available team members for Duty Roster are ' + sayArray(people, 'and');
-    }
-
+    var msg = exports.availablePeople(people);
     this.emit(':tell', msg);
   },
 
@@ -113,6 +107,20 @@ exports.whoIsOnDuty = function(attributes) {
     return msg;
   }
 };
+
+exports.availablePeople = function(people) {
+  var msg;
+  if (noPeople(people)) {
+    msg = msgNoPeople;
+  } else {
+    msg = 'Available team members for Duty Roster are ' + sayArray(people, 'and');
+  }
+  return msg;
+};
+
+function noPeople(people) {
+  return people === undefined || people.length === 0;
+}
 
 var getCurrentWeek = function() {
   return moment().format('Y-ww');
