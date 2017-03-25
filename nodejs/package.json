@@ -1,0 +1,28 @@
+{
+  "name": "DutyRoaster",
+  "version": "1.0.0",
+  "description": "Lambda function for Alexa",
+  "readme": "Lambda function for Alexa",
+  "repository": "my repository",
+  "main": "index.js",
+  "scripts": {
+    "invoke": "aws lambda invoke --function-name 'dutyRoasterNode' --payload fileb://../tests/events/alexa-start-session.json ../tests/out.txt && cat ../tests/out.txt",
+    "test": "./node_modules/.bin/mocha --reporter spec",
+    "deploy": "npm run zip && npm run upload",
+    "upload": "aws lambda update-function-code --function-name 'dutyRoasterNode' --zip-file fileb://index.zip",
+    "zip": "zip -r index.zip . -x 'package.json' -x '*.git*' "
+  },
+  "author": "Cindy Lamm",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "alexa-sdk": "^1.0.7",
+    "moment": "^2.18.1"
+  },
+  "eslintConfig": ".eslintrc.*",
+  "devDependencies": {
+    "mocha": "^3.2.0",
+    "eslint": "^3.18.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-mocha": "^4.9.0"
+  }
+}
