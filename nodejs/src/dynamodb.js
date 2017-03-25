@@ -15,23 +15,23 @@ exports.createItem = function(params, callback) {
   //   }
   // };
 
-  docClient.put(params, function(err, data) {
+  docClient.put(params, function(err) {
     if (err) {
       console.error('Unable to add item. Error JSON:', JSON.stringify(err, null, 2));
     } else {
-      // console.log('Added item:', JSON.stringify(data, null, 2));
+      // console.log('Added item');
+      callback();
     }
   });
 };
 
-exports.readDynamoItem = function(params, callback) {
+exports.readItem = function(params, callback) {
   // var params = {
   //  TableName: 'yesno',
   //  Key:{ 'id': '0'  }
   // };
 
-  console.log('Reading item from DynamoDB table');
-  docClient.get(params, (err, data) => {
+  docClient.get(params, function(err, data) {
     if (err) {
       console.error('Unable to read item. Error JSON:', JSON.stringify(err, null, 2));
     } else {
@@ -41,21 +41,22 @@ exports.readDynamoItem = function(params, callback) {
   });
 };
 
-exports.deleteItem = function(params) {
+exports.deleteItem = function(params, callback) {
   // var params = {
   //  'TableName': 'table name',
   //  'Key': {'keyName': keyValue}
   // };
 
-  for (var key in params['Key']) {
-    var keyValue = params['Key'][key];
-  }
+  // for (var key in params['Key']) {
+  //   var keyValue = params['Key'][key];
+  // }
   // console.log('Delete item with key ' + keyValue + ' from table ' + params['TableName']);
-  docClient.delete(params, (err, data) => {
+  docClient.delete(params, function(err) {
     if (err) {
       console.error('Unable to delete item. Error JSON:', JSON.stringify(err, null, 2));
     } else {
       // console.log('DeleteItem succeeded.');
+      callback();
     }
   });
 };

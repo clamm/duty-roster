@@ -31,9 +31,18 @@ var handlers = {
   },
 
   'AnswerIntent': function() {
-    var attributes = this.attributes;
+    var people = this.attributes['people'];
+    var currentName = this.attributes['name'];
 
-    var msg = exports.whoIsOnDuty(attributes);
+    var results = exports.whoIsOnDuty(currentName, people);
+    var msg = results[0];
+
+    // save the chosen person
+    var newName = results[1];
+    if (newName !== undefined) {
+      this.attributes['name'] = newName;
+    }
+
     this.emit(':tell', msg);
   },
 
@@ -60,13 +69,7 @@ var handlers = {
 
   'AvailablePeopleIntent': function() {
     var people = this.attributes['people'];
-    var msg;
-    if (people === undefined || people.length === 0) {
-      msg = msgNoPeople;
-    } else {
-      msg = 'Available team members for Duty Roster are ' + sayArray(people, 'and');
-    }
-
+    var msg = exports.availablePeople(people);
     this.emit(':tell', msg);
   },
 
@@ -87,38 +90,40 @@ exports.welcome = function() {
   return 'Welcome!';
 };
 
-exports.whoIsOnDuty = function(attributes) {
-  var week = attributes['week'];
-  var name = attributes['name'];
-  var people = attributes['people'];
-
-  // console.log('week: ' + week);
-  // console.log('people:');
-  // console.log(people);
-
-  if (week !== getCurrentWeek()) {
-    this.attributes['week'] = getCurrentWeek();
-    name = getDutyRoster(people);
-  }
-
-  console.log('name: ' + name);
+exports.whoIsOnDuty = function(name, people) {
   var msg;
   if (name !== undefined) {
-    this.attributes['name'] = name;
     msg = name + ' is the Duty Roster for this week.';
-    return msg;
-  } else {
-    // TODO enchain a dialogue here
+  } else if (name === undefined & noPeople(people)) {
+    // TODO enchain a dialogue here to setup people
     msg = msgNoPeople;
-    return msg;
+  } else if (name === undefined & !noPeople(people)) {
+    name = choosePerson(people);
+    msg = 'I chose ' + name + ' as Duty Roster for this week.';
   }
+  return [msg, name];
 };
+
+exports.availablePeople = function(people) {
+  var msg;
+  if (noPeople(people)) {
+    msg = msgNoPeople;
+  } else {
+    // TODO fix grammar if only 1 person is available
+    msg = 'Available team members for Duty Roster are ' + sayArray(people, 'and');
+  }
+  return msg;
+};
+
+function noPeople(people) {
+  return people === undefined || people.length === 0;
+}
 
 var getCurrentWeek = function() {
   return moment().format('Y-ww');
 };
 
-function getDutyRoster(people) {
+function choosePerson(people) {
   var i = 0;
   if (people === undefined) {
     return;
