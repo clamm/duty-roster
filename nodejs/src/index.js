@@ -31,15 +31,16 @@ var handlers = {
   },
 
   'AnswerIntent': function() {
-    var attributes = this.attributes;
+    var people = this.attributes['people'];
+    var currentName = this.attributes['name'];
 
-    var results = exports.whoIsOnDuty(attributes);
+    var results = exports.whoIsOnDuty(currentName, people);
     var msg = results[0];
 
     // save the chosen person
-    var name = results[1];
-    if (name !== undefined) {
-      this.attributes['name'] = name;
+    var newName = results[1];
+    if (newName !== undefined) {
+      this.attributes['name'] = newName;
     }
 
     this.emit(':tell', msg);
@@ -89,10 +90,7 @@ exports.welcome = function() {
   return 'Welcome!';
 };
 
-exports.whoIsOnDuty = function(attributes) {
-  var name = attributes['name'];
-  var people = attributes['people'];
-
+exports.whoIsOnDuty = function(name, people) {
   var msg;
   if (name !== undefined) {
     msg = name + ' is the Duty Roster for this week.';
@@ -111,6 +109,7 @@ exports.availablePeople = function(people) {
   if (noPeople(people)) {
     msg = msgNoPeople;
   } else {
+    // TODO fix grammar if only 1 person is available
     msg = 'Available team members for Duty Roster are ' + sayArray(people, 'and');
   }
   return msg;
