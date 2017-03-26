@@ -1,0 +1,14 @@
+test:
+  pre:
+    - mkdir -p $CIRCLE_TEST_REPORTS/reports
+    - eslint . --format junit --output-file $CIRCLE_TEST_REPORTS/reports/eslint.xml
+  override:
+    - mocha test --reporter mocha-junit-reporter:
+        environment:
+          MOCHA_FILE: $CIRCLE_TEST_REPORTS/junit/test-results.xml
+
+deployment:
+  prod:
+    branch: master
+    commands:
+      - npm run deploy
