@@ -1,13 +1,16 @@
 var assert = require("assert");
-var DynamoDB = require("../src/dynamodb.js");
 var striptags = require("striptags");
 var i18n = require("i18next");
 var sprintf = require("i18next-sprintf-postprocessor");
 var texts = require("../src/texts.js");
+var DynamoDB = require("../src/dynamodb.js");
+var MockDate = require("mockdate");
 
 // assumes single Lambda function with exports.handler
 var MyLambdaFunction = require("../src/index.js");
 
+var THE_DATE = "03/26/2017";
+var THE_WEEK = "2017-13";
 
 function getSpeech(response) {
     var ssml = response["response"]["outputSpeech"]["ssml"];
@@ -79,7 +82,7 @@ var keyParams = function (id) {
         }
     };
 };
-var itemParams = function functionName(id, name) {
+var itemParams = function functionName(id, name, week) {
     var params = {
         "TableName": MyLambdaFunction.TABLE_NAME,
         "Item": {
@@ -91,6 +94,9 @@ var itemParams = function functionName(id, name) {
     };
     if (name !== undefined) {
         params["Item"]["mapAttr"]["name"] = name;
+    }
+    if (week !== undefined) {
+        params["Item"]["mapAttr"]["week"] = week;
     }
     return params;
 };
@@ -185,13 +191,28 @@ describe("DutyRoster Integration", function () {
         // use new block to overwrite beforeEach with named version
         describe("AnswerIntent", function () {
             beforeEach(function (done) {
-                DynamoDB.createItem(itemParams(userId, "Raid"), done);
+                DynamoDB.createItem(itemParams(userId, "Raid", THE_WEEK), done);
             });
-            it("should stick to the choosen person", function (done) {
+            it("should stick to the chosen person", function (done) {
                 var event = getEvent(userId, "IntentRequest", "AnswerIntent");
                 // we don't know the person that was chosen, but we know it should respond with this text
                 var until = i18n.t("DUTY_OFFICER").indexOf("%s");
-                var expected = i18n.t("DUTY_OFFICER").substr(until + 2);
+                var expected = i18n.t("DUTY_OFFICER").substr(until + 3);
+                MockDate.set(new Date(THE_DATE));
+                MyLambdaFunction["handler"](event, context(expected, done), done);
+                MockDate.reset();
+            });
+        });
+
+        describe("AnswerIntent", function () {
+            beforeEach(function (done) {
+                DynamoDB.createItem(itemParams(userId, "Raid", "2017-01"), done);
+            });
+            it("should choose a new person if it's a new week", function (done) {
+                var event = getEvent(userId, "IntentRequest", "AnswerIntent");
+                // we don't know the person that was chosen, but we know it should respond with this text
+                var until = i18n.t("CHOSEN_PERSON").indexOf("%s");
+                var expected = i18n.t("CHOSEN_PERSON").substr(until + 3);
                 MyLambdaFunction["handler"](event, context(expected, done), done);
             });
         });

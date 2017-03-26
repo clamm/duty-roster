@@ -1,5 +1,5 @@
 var Alexa = require("alexa-sdk");
-
+var moment = require("moment");
 var AWS = require("aws-sdk");
 AWS.config.update({
     region: "eu-west-1"
@@ -38,14 +38,16 @@ var handlers = {
     "AnswerIntent": function () {
         var people = this.attributes["people"];
         var currentName = this.attributes["name"];
+        var week = this.attributes["week"];
 
-        var results = exports.whoIsOnDuty(currentName, people);
+        var results = exports.whoIsOnDuty(currentName, week, people);
         var msgKey = results[0];
 
         // save the chosen person
         var newName = results[1];
         if (newName !== undefined) {
             this.attributes["name"] = newName;
+            this.attributes["week"] = getCurrentWeek();
         }
         this.attributes["speechOutput"] = this.t(msgKey, newName);
         this.emit(":tell", this.attributes["speechOutput"]);
@@ -95,16 +97,20 @@ var handlers = {
 };
 
 
-exports.whoIsOnDuty = function (name, people) {
+exports.whoIsOnDuty = function (name, week, people) {
     var msgKey;
-    if (name !== undefined) {
+
+    // if officer is not set
+    var officerIsSet = name !== undefined;
+    var officerOutdated = name && week !== getCurrentWeek();
+
+    if (!officerIsSet || officerOutdated) {
+        var results = choosePerson(people);
+        msgKey = results[0];
+        name = results[1];
+    } else {
+        // officer is set and up to date
         msgKey = "DUTY_OFFICER";
-    } else if (name === undefined && !people) {
-        // TODO enchain a dialogue here to setup people
-        msgKey = "NO_PEOPLE";
-    } else if (name === undefined && people) {
-        name = choosePerson(people);
-        msgKey = "CHOSEN_PERSON";
     }
     return [msgKey, name];
 };
@@ -135,7 +141,27 @@ exports.shouldAddPerson = function (firstName, people) {
     return shouldAdd;
 };
 
+function getCurrentWeek() {
+    return moment().format("Y-ww");
+}
+
 function choosePerson(people) {
+    var name, msgKey;
+
+    if (people) {
+        name = randomlySelectPerson(people);
+        msgKey = "CHOSEN_PERSON";
+    }
+
+    if (!people) {
+        // TODO enchain a dialogue here to setup people
+        msgKey = "NO_PEOPLE";
+    }
+
+    return [msgKey, name];
+}
+
+function randomlySelectPerson(people) {
     var i = 0;
     if (people === undefined) {
         return;

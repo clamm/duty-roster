@@ -1,30 +1,50 @@
 var assert = require("assert");
 var index = require("../src/index.js");
+var MockDate = require("mockdate");
+
 
 describe("DutyRoster Unit", function () {
 
+    beforeEach(function () {
+        MockDate.set("03/26/2017");
+    });
+
+    afterEach(function () {
+        MockDate.reset();
+    });
+
     describe("whoIsOnDuty()", function () {
-        it("should return the current setting", function () {
-            var name = "Cindy";
-            var people = ["Cindy"];
-            assert.equal(index.whoIsOnDuty(name, people)[1], "Cindy");
-        });
         it("should tell if there are no people", function () {
-            var name, people;
-            assert.equal(index.whoIsOnDuty(name, people)[1], undefined);
-            assert.equal(index.whoIsOnDuty(name, people)[0], "NO_PEOPLE");
+            var name, week, people;
+            assert.equal(index.whoIsOnDuty(name, week, people)[1], undefined);
+            assert.equal(index.whoIsOnDuty(name, week, people)[0], "NO_PEOPLE");
         });
-        it("should choose a person if no one is set", function () {
-            var name;
+        it("should choose a person if no session info on name/week is available", function () {
+            var name, week;
             var people = ["Cindy"];
-            assert.equal(index.whoIsOnDuty(name, people)[0], "CHOSEN_PERSON");
-            assert.equal(index.whoIsOnDuty(name, people)[1], "Cindy");
+            assert.equal(index.whoIsOnDuty(name, week, people)[0], "CHOSEN_PERSON");
+            assert.equal(index.whoIsOnDuty(name, week, people)[1], "Cindy");
+        });
+        it("should choose a person if no one is set for this week", function () {
+            var name = "Anna";
+            var week = "2017-01"; // week in the past
+            var people = ["Cindy"];
+            assert.equal(index.whoIsOnDuty(name, week, people)[0], "CHOSEN_PERSON");
+            assert.equal(index.whoIsOnDuty(name, week, people)[1], "Cindy");
+        });
+        it("should choose a person if week is unknown", function () {
+            var name = "Anna";
+            var week;
+            var people = ["Cindy"];
+            assert.equal(index.whoIsOnDuty(name, week, people)[0], "CHOSEN_PERSON");
+            assert.equal(index.whoIsOnDuty(name, week, people)[1], "Cindy");
         });
         it("should tell the person which is set", function () {
             var name = "Cindy";
+            var week = "2017-13";
             var people = ["Cindy"];
-            assert.equal(index.whoIsOnDuty(name, people)[0], "DUTY_OFFICER");
-            assert.equal(index.whoIsOnDuty(name, people)[1], "Cindy");
+            assert.equal(index.whoIsOnDuty(name, week, people)[0], "DUTY_OFFICER");
+            assert.equal(index.whoIsOnDuty(name, week, people)[1], "Cindy");
         });
     });
 
