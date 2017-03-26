@@ -10,6 +10,7 @@ Implemented in Node.js.
 * Run tests with `npm test`.
 * Package the Lambda function to upload to AWS with `npm run zip`. This creates
   an `index.zip`.
+* Once the Lambda function is setup, you can run `npm run deploy` to package and upload the zip.
 
 ### AWS Lambda Setup
 

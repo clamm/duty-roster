@@ -1,164 +1,175 @@
-var Alexa = require('alexa-sdk');
-var moment = require('moment');
-var AWS = require('aws-sdk');
-var AWSregion = 'eu-west-1';
+var Alexa = require("alexa-sdk");
 
-exports.tableName = 'DutyRosterSessions';
-
-
+var AWS = require("aws-sdk");
 AWS.config.update({
-  region: AWSregion
+    region: "eu-west-1"
 });
 
-exports.handler = function(event, context, callback) {
-  var alexa = Alexa.handler(event, context);
+var APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
 
-  // alexa.appId = 'amzn1.ask.skill.1234';
+var texts = require("./texts");
 
-  // creates new table for session.attributes
-  alexa.dynamoDBTableName = exports.tableName;
+exports.TABLE_NAME = "DutyRosterSessions";
 
-  alexa.registerHandlers(handlers);
-  return alexa.execute();
+
+exports.handler = function (event, context) {
+    var alexa = Alexa.handler(event, context);
+
+    alexa.appId = APP_ID;
+
+    // creates new table for session.attributes
+    alexa.dynamoDBTableName = exports.TABLE_NAME;
+
+    // To enable string internationalization (i18n) features, set a resources object.
+    alexa.resources = texts;
+
+    alexa.registerHandlers(handlers);
+    return alexa.execute();
 };
-
-var msgNoPeople = 'There are no people set up yet.';
 
 var handlers = {
-  'LaunchRequest': function() {
-    var welcomeText = exports.welcome();
-    this.emit(':tell', welcomeText);
-  },
+    "LaunchRequest": function () {
+        this.attributes["speechOutput"] = this.t("WELCOME_MESSAGE", this.t("SKILL_NAME"));
+        this.attributes["repromptSpeech"] = this.t("WELCOME_REPROMPT");
+        this.emit(":ask", this.attributes["speechOutput"], this.attributes["repromptSpeech"]);
+        // TODO ask if user would like to know who is on duty - if people are setup (YesNoIntent)
+    },
 
-  'AnswerIntent': function() {
-    var people = this.attributes['people'];
-    var currentName = this.attributes['name'];
+    "AnswerIntent": function () {
+        var people = this.attributes["people"];
+        var currentName = this.attributes["name"];
 
-    var results = exports.whoIsOnDuty(currentName, people);
-    var msg = results[0];
+        var results = exports.whoIsOnDuty(currentName, people);
+        var msgKey = results[0];
 
-    // save the chosen person
-    var newName = results[1];
-    if (newName !== undefined) {
-      this.attributes['name'] = newName;
+        // save the chosen person
+        var newName = results[1];
+        if (newName !== undefined) {
+            this.attributes["name"] = newName;
+        }
+        this.attributes["speechOutput"] = this.t(msgKey, newName);
+        this.emit(":tell", this.attributes["speechOutput"]);
+    },
+
+    "AddPersonIntent": function () {
+        var firstName = this.event.request.intent.slots.firstName.value;
+
+        var people = this.attributes["people"];
+
+        var msgKey = "ALREADY_IN_LIST";
+        var shouldAdd = exports.shouldAddPerson(firstName, people);
+
+        if (shouldAdd) {
+            if (people) {
+                this.attributes["people"].push(firstName);
+            } else {
+                this.attributes["people"] = [firstName];
+            }
+            msgKey = "ADDED_PERSON";
+        }
+
+        this.attributes["speechOutput"] = this.t(msgKey, firstName);
+        this.emit(":tell", this.attributes["speechOutput"]);
+    },
+
+    "AvailablePeopleIntent": function () {
+        var people = this.attributes["people"];
+        var results = exports.availablePeople(people);
+        var msgKey = results[0];
+        var names = results[1];
+        this.attributes["speechOutput"] = this.t(msgKey, this.t(names, this.t("AND")));
+        this.emit(":tell", this.attributes["speechOutput"]);
+    },
+
+    "AMAZON.HelpIntent": function () {
+        this.emit(":ask", "With Duty Roster you can find out who is the Duty Roster this week. Just say 'Who is the duty roster this week?'");
+    },
+
+    "AMAZON.StopIntent": function () {
+        this.emit(":tell", "Bye, see you soon.");
+    },
+
+    "AMAZON.CancelIntent": function () {
+        this.emit(":tell", "Later dude.");
     }
+};
 
-    this.emit(':tell', msg);
-  },
 
-  'AddPersonIntent': function() {
-    var firstName = this.event.request.intent.slots.firstName.value;
-
-    var people = this.attributes['people'];
-
-    if (people === undefined) {
-      people = [];
+exports.whoIsOnDuty = function (name, people) {
+    var msgKey;
+    if (name !== undefined) {
+        msgKey = "DUTY_OFFICER";
+    } else if (name === undefined && !people) {
+        // TODO enchain a dialogue here to setup people
+        msgKey = "NO_PEOPLE";
+    } else if (name === undefined && people) {
+        name = choosePerson(people);
+        msgKey = "CHOSEN_PERSON";
     }
+    return [msgKey, name];
+};
 
-    var msg;
-    if (people.indexOf(firstName) < 0) {
-      people.push(firstName);
-      this.attributes['people'] = people;
-      msg = 'I added ' + firstName + ' to the list of available people.';
+exports.availablePeople = function (people) {
+    var msgKey;
+    if (!people) {
+        msgKey = "NO_PEOPLE";
     } else {
-      msg = firstName + ' is already in the list.';
+        msgKey = "AVAILABLE_PEOPLE";
+        // use sprintf style parameter which will be replaced with language specific word
+        var names = exports.sayArray(people, "%s");
+        if (people.length === 1) {
+            msgKey = "AVAILABLE_PERSON";
+        }
     }
-
-    this.emit(':tell', msg);
-  },
-
-  'AvailablePeopleIntent': function() {
-    var people = this.attributes['people'];
-    var msg = exports.availablePeople(people);
-    this.emit(':tell', msg);
-  },
-
-  'AMAZON.HelpIntent': function() {
-    this.emit(':ask', 'With Duty Roster you can find out who is the Duty Roster this week. Just say "Who is the duty roster this week?"');
-  },
-
-  'AMAZON.StopIntent': function() {
-    this.emit(':tell', 'Bye, see you soon.');
-  },
-
-  'AMAZON.CancelIntent': function() {
-    this.emit(':tell', 'Later dude.');
-  },
+    return [msgKey, names];
 };
 
-exports.welcome = function() {
-  return 'Welcome!';
-};
-
-exports.whoIsOnDuty = function(name, people) {
-  var msg;
-  if (name !== undefined) {
-    msg = name + ' is the Duty Roster for this week.';
-  } else if (name === undefined & noPeople(people)) {
-    // TODO enchain a dialogue here to setup people
-    msg = msgNoPeople;
-  } else if (name === undefined & !noPeople(people)) {
-    name = choosePerson(people);
-    msg = 'I chose ' + name + ' as Duty Roster for this week.';
-  }
-  return [msg, name];
-};
-
-exports.availablePeople = function(people) {
-  var msg;
-  if (noPeople(people)) {
-    msg = msgNoPeople;
-  } else {
-    // TODO fix grammar if only 1 person is available
-    msg = 'Available team members for Duty Roster are ' + sayArray(people, 'and');
-  }
-  return msg;
-};
-
-function noPeople(people) {
-  return people === undefined || people.length === 0;
-}
-
-var getCurrentWeek = function() {
-  return moment().format('Y-ww');
+exports.shouldAddPerson = function (firstName, people) {
+    if (people === undefined) {
+        people = [];
+    }
+    var shouldAdd = false;
+    if (people.indexOf(firstName) < 0) {
+        shouldAdd = true;
+    }
+    return shouldAdd;
 };
 
 function choosePerson(people) {
-  var i = 0;
-  if (people === undefined) {
-    return;
-  }
-  i = Math.floor(Math.random() * people.length);
-  return people[i];
-}
-
-
-function sayArray(myData, andor) {
-  // the first argument is an array [] of items
-  // the second argument is the list penultimate word; and/or/nor etc.
-
-  var listString = '';
-
-  if (myData.length == 1) {
-    listString = myData[0];
-  } else {
-    if (myData.length == 2) {
-      listString = myData[0] + ' ' + andor + ' ' + myData[1];
-    } else {
-
-      for (var i = 0; i < myData.length; i++) {
-        if (i < myData.length - 2) {
-          listString = listString + myData[i] + ', ';
-          if (i == myData.length - 2) {
-            listString = listString + myData[i] + ', ' + andor + ' ';
-          }
-
-        } else {
-          listString = listString + myData[i];
-        }
-
-      }
+    var i = 0;
+    if (people === undefined) {
+        return;
     }
-  }
-  return (listString);
+    i = Math.floor(Math.random() * people.length);
+    return people[i];
 }
+
+exports.sayArray = function (myData, andor) {
+    // the first argument is an array [] of items
+    // the second argument is the list penultimate word; and/or/nor etc.
+
+    var listString = "";
+
+    if (myData.length === 1) {
+        listString = myData[0];
+    } else {
+        if (myData.length === 2) {
+            listString = myData[0] + " " + andor + " " + myData[1];
+        } else {
+            for (var i = 0; i < myData.length; i++) {
+                if (i < myData.length - 2) {
+                    listString = listString + myData[i] + ", ";
+                }
+                else {
+                    if (i === myData.length - 2) {
+                        listString = listString + myData[i] + " " + andor + " ";
+                    } else {
+                        listString = listString + myData[i];
+                    }
+                }
+
+            }
+        }
+    }
+    return (listString);
+};
