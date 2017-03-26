@@ -1,7 +1,11 @@
 AddPersonIntent füge {firstName} hinzu
+AddPersonIntent füge {firstName} zum dienstplan hinzu
 AnswerIntent wer hat dienst
-AnswerIntent wer hat diesnt diese woche
+AnswerIntent wer hat dienst diese woche
+AnswerIntent wer ist dran
 AnswerIntent wer ist dran diese woche
 AnswerIntent wer ist diese woche dran
 AvailablePeopleIntent wen gibt es
+AvailablePeopleIntent wen gibt es auf dem dienstplan
+AvailablePeopleIntent wer ist auf dem dienstplan
 AvailablePeopleIntent wer kann dienst haben

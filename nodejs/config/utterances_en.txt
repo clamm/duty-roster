@@ -1,11 +1,12 @@
 AddPersonIntent add {firstName}
 AddPersonIntent please add {firstName}
-AnswerIntent who is the duty roster
-AnswerIntent who is the duty roster this week
-AnswerIntent who is the duty roster today
-AnswerIntent who is on operations duty
-AnswerIntent who is on operations duty this week
-AnswerIntent who is on operations duty today
+AnswerIntent who is the duty officer
+AnswerIntent who is the duty officer this week
+AnswerIntent who is the duty officer today
+AnswerIntent who is on duty
+AnswerIntent who is on duty this week
+AnswerIntent who is on duty today
 AvailablePeopleIntent who is available
-AvailablePeopleIntent who can be duty roster
+AvailablePeopleIntent who can be duty officer
 AvailablePeopleIntent who is there
+AvailablePeopleIntent who is on the duty roster
