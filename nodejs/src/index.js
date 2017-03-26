@@ -115,7 +115,7 @@ exports.availablePeople = function (people) {
         msgKey = "NO_PEOPLE";
     } else {
         msgKey = "AVAILABLE_PEOPLE";
-        var names = sayArray(people, "and");
+        var names = exports.sayArray(people, "and");
         if (people.length === 1) {
             msgKey = "AVAILABLE_PERSON";
         }
@@ -143,32 +143,32 @@ function choosePerson(people) {
     return people[i];
 }
 
-function sayArray(myData, andor) {
+exports.sayArray = function (myData, andor) {
     // the first argument is an array [] of items
     // the second argument is the list penultimate word; and/or/nor etc.
 
     var listString = "";
 
-    if (myData.length == 1) {
+    if (myData.length === 1) {
         listString = myData[0];
     } else {
-        if (myData.length == 2) {
+        if (myData.length === 2) {
             listString = myData[0] + " " + andor + " " + myData[1];
         } else {
-
             for (var i = 0; i < myData.length; i++) {
                 if (i < myData.length - 2) {
                     listString = listString + myData[i] + ", ";
-                    if (i == myData.length - 2) {
-                        listString = listString + myData[i] + ", " + andor + " ";
+                }
+                else {
+                    if (i === myData.length - 2) {
+                        listString = listString + myData[i] + " " + andor + " ";
+                    } else {
+                        listString = listString + myData[i];
                     }
-
-                } else {
-                    listString = listString + myData[i];
                 }
 
             }
         }
     }
     return (listString);
-}
+};
