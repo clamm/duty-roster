@@ -11,10 +11,6 @@ function getSpeech(response) {
     return response["response"]["outputSpeech"]["ssml"];
 }
 
-function getSessionAttributes(response) {
-    return response["sessionAttributes"];
-}
-
 var context = function (expected, done) {
     return {
         "succeed": function (data) {

@@ -1,5 +1,4 @@
 var Alexa = require("alexa-sdk");
-var moment = require("moment");
 
 var AWS = require("aws-sdk");
 AWS.config.update({
@@ -12,7 +11,7 @@ var APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
 exports.TABLE_NAME = "DutyRosterSessions";
 
 
-exports.handler = function (event, context, callback) {
+exports.handler = function (event, context) {
     var alexa = Alexa.handler(event, context);
 
     alexa.appId = APP_ID;
@@ -120,10 +119,6 @@ exports.availablePeople = function (people) {
 function noPeople(people) {
     return people === undefined || people.length === 0;
 }
-
-var getCurrentWeek = function () {
-    return moment().format("Y-ww");
-};
 
 function choosePerson(people) {
     var i = 0;

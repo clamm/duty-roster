@@ -15,8 +15,7 @@
   "author": "Cindy Lamm",
   "license": "Apache-2.0",
   "dependencies": {
-    "alexa-sdk": "^1.0.7",
-    "moment": "^2.18.1"
+    "alexa-sdk": "^1.0.7"
   },
   "eslintConfig": ".eslintrc.*",
   "devDependencies": {
