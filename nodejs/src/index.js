@@ -1,15 +1,15 @@
-var Alexa = require('alexa-sdk');
-var moment = require('moment');
+var Alexa = require("alexa-sdk");
+var moment = require("moment");
 
-var AWS = require('aws-sdk');
+var AWS = require("aws-sdk");
 AWS.config.update({
-    region: 'eu-west-1'
+    region: "eu-west-1"
 });
 
 var APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
 
 
-exports.TABLE_NAME = 'DutyRosterSessions';
+exports.TABLE_NAME = "DutyRosterSessions";
 
 
 exports.handler = function (event, context, callback) {
@@ -24,17 +24,17 @@ exports.handler = function (event, context, callback) {
     return alexa.execute();
 };
 
-var msgNoPeople = 'There are no people set up yet.';
+var msgNoPeople = "There are no people set up yet.";
 
 var handlers = {
-    'LaunchRequest': function () {
+    "LaunchRequest": function () {
         var welcomeText = exports.welcome();
-        this.emit(':tell', welcomeText);
+        this.emit(":tell", welcomeText);
     },
 
-    'AnswerIntent': function () {
-        var people = this.attributes['people'];
-        var currentName = this.attributes['name'];
+    "AnswerIntent": function () {
+        var people = this.attributes["people"];
+        var currentName = this.attributes["name"];
 
         var results = exports.whoIsOnDuty(currentName, people);
         var msg = results[0];
@@ -42,16 +42,16 @@ var handlers = {
         // save the chosen person
         var newName = results[1];
         if (newName !== undefined) {
-            this.attributes['name'] = newName;
+            this.attributes["name"] = newName;
         }
 
-        this.emit(':tell', msg);
+        this.emit(":tell", msg);
     },
 
-    'AddPersonIntent': function () {
+    "AddPersonIntent": function () {
         var firstName = this.event.request.intent.slots.firstName.value;
 
-        var people = this.attributes['people'];
+        var people = this.attributes["people"];
 
         if (people === undefined) {
             people = [];
@@ -60,48 +60,48 @@ var handlers = {
         var msg;
         if (people.indexOf(firstName) < 0) {
             people.push(firstName);
-            this.attributes['people'] = people;
-            msg = 'I added ' + firstName + ' to the list of available people.';
+            this.attributes["people"] = people;
+            msg = "I added " + firstName + " to the list of available people.";
         } else {
-            msg = firstName + ' is already in the list.';
+            msg = firstName + " is already in the list.";
         }
 
-        this.emit(':tell', msg);
+        this.emit(":tell", msg);
     },
 
-    'AvailablePeopleIntent': function () {
-        var people = this.attributes['people'];
+    "AvailablePeopleIntent": function () {
+        var people = this.attributes["people"];
         var msg = exports.availablePeople(people);
-        this.emit(':tell', msg);
+        this.emit(":tell", msg);
     },
 
-    'AMAZON.HelpIntent': function () {
-        this.emit(':ask', 'With Duty Roster you can find out who is the Duty Roster this week. Just say "Who is the duty roster this week?"');
+    "AMAZON.HelpIntent": function () {
+        this.emit(":ask", "With Duty Roster you can find out who is the Duty Roster this week. Just say 'Who is the duty roster this week?'");
     },
 
-    'AMAZON.StopIntent': function () {
-        this.emit(':tell', 'Bye, see you soon.');
+    "AMAZON.StopIntent": function () {
+        this.emit(":tell", "Bye, see you soon.");
     },
 
-    'AMAZON.CancelIntent': function () {
-        this.emit(':tell', 'Later dude.');
+    "AMAZON.CancelIntent": function () {
+        this.emit(":tell", "Later dude.");
     },
 };
 
 exports.welcome = function () {
-    return 'Welcome!';
+    return "Welcome!";
 };
 
 exports.whoIsOnDuty = function (name, people) {
     var msg;
     if (name !== undefined) {
-        msg = name + ' is the Duty Roster for this week.';
+        msg = name + " is the Duty Roster for this week.";
     } else if (name === undefined & noPeople(people)) {
         // TODO enchain a dialogue here to setup people
         msg = msgNoPeople;
     } else if (name === undefined & !noPeople(people)) {
         name = choosePerson(people);
-        msg = 'I chose ' + name + ' as Duty Roster for this week.';
+        msg = "I chose " + name + " as Duty Roster for this week.";
     }
     return [msg, name];
 };
@@ -112,7 +112,7 @@ exports.availablePeople = function (people) {
         msg = msgNoPeople;
     } else {
         // TODO fix grammar if only 1 person is available
-        msg = 'Available team members for Duty Roster are ' + sayArray(people, 'and');
+        msg = "Available team members for Duty Roster are " + sayArray(people, "and");
     }
     return msg;
 };
@@ -122,7 +122,7 @@ function noPeople(people) {
 }
 
 var getCurrentWeek = function () {
-    return moment().format('Y-ww');
+    return moment().format("Y-ww");
 };
 
 function choosePerson(people) {
@@ -139,20 +139,20 @@ function sayArray(myData, andor) {
     // the first argument is an array [] of items
     // the second argument is the list penultimate word; and/or/nor etc.
 
-    var listString = '';
+    var listString = "";
 
     if (myData.length == 1) {
         listString = myData[0];
     } else {
         if (myData.length == 2) {
-            listString = myData[0] + ' ' + andor + ' ' + myData[1];
+            listString = myData[0] + " " + andor + " " + myData[1];
         } else {
 
             for (var i = 0; i < myData.length; i++) {
                 if (i < myData.length - 2) {
-                    listString = listString + myData[i] + ', ';
+                    listString = listString + myData[i] + ", ";
                     if (i == myData.length - 2) {
-                        listString = listString + myData[i] + ', ' + andor + ' ';
+                        listString = listString + myData[i] + ", " + andor + " ";
                     }
 
                 } else {
