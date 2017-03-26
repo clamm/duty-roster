@@ -7,6 +7,7 @@ AWS.config.update({
 
 var APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
 
+var texts = require("./texts");
 
 exports.TABLE_NAME = "DutyRosterSessions";
 
@@ -19,16 +20,19 @@ exports.handler = function (event, context) {
     // creates new table for session.attributes
     alexa.dynamoDBTableName = exports.TABLE_NAME;
 
+    // To enable string internationalization (i18n) features, set a resources object.
+    alexa.resources = texts;
+
     alexa.registerHandlers(handlers);
     return alexa.execute();
 };
 
-var msgNoPeople = "There are no people set up yet.";
-
 var handlers = {
     "LaunchRequest": function () {
-        var welcomeText = exports.welcome();
-        this.emit(":tell", welcomeText);
+        this.attributes["speechOutput"] = this.t("WELCOME_MESSAGE", this.t("SKILL_NAME"));
+        this.attributes["repromptSpeech"] = this.t("WELCOME_REPROMPT");
+        this.emit(":ask", this.attributes["speechOutput"], this.attributes["repromptSpeech"]);
+        // TODO ask if user would like to know who is on duty - if people are setup (YesNoIntent)
     },
 
     "AnswerIntent": function () {
@@ -36,15 +40,15 @@ var handlers = {
         var currentName = this.attributes["name"];
 
         var results = exports.whoIsOnDuty(currentName, people);
-        var msg = results[0];
+        var msgKey = results[0];
 
         // save the chosen person
         var newName = results[1];
         if (newName !== undefined) {
             this.attributes["name"] = newName;
         }
-
-        this.emit(":tell", msg);
+        this.attributes["speechOutput"] = this.t(msgKey, newName);
+        this.emit(":tell", this.attributes["speechOutput"]);
     },
 
     "AddPersonIntent": function () {
@@ -52,26 +56,29 @@ var handlers = {
 
         var people = this.attributes["people"];
 
-        if (people === undefined) {
-            people = [];
+        var msgKey = "ALREADY_IN_LIST";
+        var shouldAdd = exports.shouldAddPerson(firstName, people);
+
+        if (shouldAdd) {
+            if (people) {
+                this.attributes["people"].push(firstName);
+            } else {
+                this.attributes["people"] = [firstName];
+            }
+            msgKey = "ADDED_PERSON";
         }
 
-        var msg;
-        if (people.indexOf(firstName) < 0) {
-            people.push(firstName);
-            this.attributes["people"] = people;
-            msg = "I added " + firstName + " to the list of available people.";
-        } else {
-            msg = firstName + " is already in the list.";
-        }
-
-        this.emit(":tell", msg);
+        this.attributes["speechOutput"] = this.t(msgKey, firstName);
+        this.emit(":tell", this.attributes["speechOutput"]);
     },
 
     "AvailablePeopleIntent": function () {
         var people = this.attributes["people"];
-        var msg = exports.availablePeople(people);
-        this.emit(":tell", msg);
+        var results = exports.availablePeople(people);
+        var msgKey = results[0];
+        var names = results[1];
+        this.attributes["speechOutput"] = this.t(msgKey, names);
+        this.emit(":tell", this.attributes["speechOutput"]);
     },
 
     "AMAZON.HelpIntent": function () {
@@ -84,41 +91,48 @@ var handlers = {
 
     "AMAZON.CancelIntent": function () {
         this.emit(":tell", "Later dude.");
-    },
+    }
 };
 
-exports.welcome = function () {
-    return "Welcome!";
-};
 
 exports.whoIsOnDuty = function (name, people) {
-    var msg;
+    var msgKey;
     if (name !== undefined) {
-        msg = name + " is the Duty Roster for this week.";
-    } else if (name === undefined & noPeople(people)) {
+        msgKey = "DUTY_OFFICER";
+    } else if (name === undefined && !people) {
         // TODO enchain a dialogue here to setup people
-        msg = msgNoPeople;
-    } else if (name === undefined & !noPeople(people)) {
+        msgKey = "NO_PEOPLE";
+    } else if (name === undefined && people) {
         name = choosePerson(people);
-        msg = "I chose " + name + " as Duty Roster for this week.";
+        msgKey = "CHOSEN_PERSON";
     }
-    return [msg, name];
+    return [msgKey, name];
 };
 
 exports.availablePeople = function (people) {
-    var msg;
-    if (noPeople(people)) {
-        msg = msgNoPeople;
+    var msgKey;
+    if (!people) {
+        msgKey = "NO_PEOPLE";
     } else {
-        // TODO fix grammar if only 1 person is available
-        msg = "Available team members for Duty Roster are " + sayArray(people, "and");
+        msgKey = "AVAILABLE_PEOPLE";
+        var names = sayArray(people, "and");
+        if (people.length === 1) {
+            msgKey = "AVAILABLE_PERSON";
+        }
     }
-    return msg;
+    return [msgKey, names];
 };
 
-function noPeople(people) {
-    return people === undefined || people.length === 0;
-}
+exports.shouldAddPerson = function (firstName, people) {
+    if (people === undefined) {
+        people = [];
+    }
+    var shouldAdd = false;
+    if (people.indexOf(firstName) < 0) {
+        shouldAdd = true;
+    }
+    return shouldAdd;
+};
 
 function choosePerson(people) {
     var i = 0;
@@ -128,7 +142,6 @@ function choosePerson(people) {
     i = Math.floor(Math.random() * people.length);
     return people[i];
 }
-
 
 function sayArray(myData, andor) {
     // the first argument is an array [] of items
