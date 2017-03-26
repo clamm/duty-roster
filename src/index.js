@@ -29,9 +29,9 @@ exports.handler = function (event, context) {
 
 var handlers = {
     "LaunchRequest": function () {
-        this.attributes["speechOutput"] = this.t("WELCOME_MESSAGE", this.t("SKILL_NAME"));
-        this.attributes["repromptSpeech"] = this.t("WELCOME_REPROMPT");
-        this.emit(":ask", this.attributes["speechOutput"], this.attributes["repromptSpeech"]);
+        var speechOutput = this.t("WELCOME_MESSAGE", this.t("SKILL_NAME"));
+        var repromptSpeech = this.t("WELCOME_REPROMPT");
+        this.emit(":ask", speechOutput, repromptSpeech);
         // TODO ask if user would like to know who is on duty - if people are setup (YesNoIntent)
     },
 
@@ -49,8 +49,8 @@ var handlers = {
             this.attributes["name"] = newName;
             this.attributes["week"] = getCurrentWeek();
         }
-        this.attributes["speechOutput"] = this.t(msgKey, newName);
-        this.emit(":tell", this.attributes["speechOutput"]);
+        var speechOutput = this.t(msgKey, newName);
+        this.emit(":tell", speechOutput);
     },
 
     "AddPersonIntent": function () {
@@ -70,8 +70,8 @@ var handlers = {
             msgKey = "ADDED_PERSON";
         }
 
-        this.attributes["speechOutput"] = this.t(msgKey, firstName);
-        this.emit(":tell", this.attributes["speechOutput"]);
+        var speechOutput = this.t(msgKey, firstName);
+        this.emit(":tell", speechOutput);
     },
 
     "AvailablePeopleIntent": function () {
@@ -79,8 +79,8 @@ var handlers = {
         var results = exports.availablePeople(people);
         var msgKey = results[0];
         var names = results[1];
-        this.attributes["speechOutput"] = this.t(msgKey, this.t(names, this.t("AND")));
-        this.emit(":tell", this.attributes["speechOutput"]);
+        var speechOutput = this.t(msgKey, this.t(names, this.t("AND")));
+        this.emit(":tell", speechOutput);
     },
 
     "AMAZON.HelpIntent": function () {
