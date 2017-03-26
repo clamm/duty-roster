@@ -41,7 +41,7 @@ describe("DutyRoster Unit", function () {
         it("should return all people that are available", function () {
             var people = ["Raid", "Cindy", "Anna"];
             assert.equal(index.availablePeople(people)[0], "AVAILABLE_PEOPLE");
-            assert.equal(index.availablePeople(people)[1], "Raid, Cindy and Anna");
+            assert.equal(index.availablePeople(people)[1], "Raid, Cindy %s Anna");
         });
     });
 

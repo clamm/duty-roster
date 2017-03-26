@@ -77,7 +77,7 @@ var handlers = {
         var results = exports.availablePeople(people);
         var msgKey = results[0];
         var names = results[1];
-        this.attributes["speechOutput"] = this.t(msgKey, names);
+        this.attributes["speechOutput"] = this.t(msgKey, this.t(names, this.t("AND")));
         this.emit(":tell", this.attributes["speechOutput"]);
     },
 
@@ -115,7 +115,8 @@ exports.availablePeople = function (people) {
         msgKey = "NO_PEOPLE";
     } else {
         msgKey = "AVAILABLE_PEOPLE";
-        var names = exports.sayArray(people, "and");
+        // use sprintf style parameter which will be replaced with language specific word
+        var names = exports.sayArray(people, "%s");
         if (people.length === 1) {
             msgKey = "AVAILABLE_PERSON";
         }
