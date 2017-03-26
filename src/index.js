@@ -84,15 +84,15 @@ var handlers = {
     },
 
     "AMAZON.HelpIntent": function () {
-        this.emit(":ask", "With Duty Roster you can find out who is the Duty Roster this week. Just say 'Who is the duty roster this week?'");
+        this.emit(":ask", this.t("HELP_MESSAGE"), this.t("HELP_REPROMPT"));
     },
 
     "AMAZON.StopIntent": function () {
-        this.emit(":tell", "Bye, see you soon.");
+        this.emit(":tell", this.t("STOP_MESSAGE"));
     },
 
     "AMAZON.CancelIntent": function () {
-        this.emit(":tell", "Later dude.");
+        this.emit(":tell", this.t("CANCEL_MESSAGE"));
     }
 };
 
