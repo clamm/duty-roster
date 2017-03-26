@@ -1,5 +1,7 @@
 # Alexa Skill: Duty Roster
 
+![build status](https://circleci.com/gh/clamm/duty-roster.svg?style=shield&circle-token=:circle-token)
+
 Implemented in Node.js.
 
 ## Getting Started
